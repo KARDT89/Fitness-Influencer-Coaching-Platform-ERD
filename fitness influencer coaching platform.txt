@@ -1,0 +1,166 @@
+// Eraser ERD — Fitness Influencer Coaching Platform
+
+// ─── Entities ───────────────────────────────────────────
+
+Trainer [icon: star, color: orange] {
+  trainer_id UUID PK
+  full_name string
+  email string
+  phone string
+  bio text
+  instagram_handle string
+  specialization string // e.g. 'weight loss', 'strength', 'yoga'
+  joined_at timestamp
+}
+
+Client [icon: user, color: blue] {
+  client_id UUID PK
+  full_name string
+  email string
+  phone string
+  date_of_birth date
+  gender enum // 'male', 'female', 'other'
+  goal text // e.g. 'lose 10kg', 'build muscle'
+  joined_at timestamp
+}
+
+CoachingPlan [icon: clipboard, color: teal] {
+  plan_id UUID PK
+  trainer_id UUID FK
+  plan_name string // e.g. '12-Week Fat Loss', 'Beginner Bulk'
+  plan_type enum // 'one_time', 'subscription'
+  duration_weeks int
+  price decimal
+  includes_diet boolean
+  includes_workout boolean
+  includes_live_sessions boolean
+  description text
+  created_at timestamp
+}
+
+Subscription [icon: refresh-cw, color: yellow] {
+  subscription_id UUID PK
+  client_id UUID FK
+  plan_id UUID FK
+  trainer_id UUID FK
+  start_date date
+  end_date date
+  status enum // 'active', 'paused', 'expired', 'cancelled'
+  enrolled_at timestamp
+}
+
+WorkoutPlan [icon: zap, color: teal] {
+  workout_plan_id UUID PK
+  subscription_id UUID FK
+  trainer_id UUID FK
+  title string
+  week_number int
+  frequency_per_week int
+  notes text
+  assigned_at timestamp
+}
+
+DietPlan [icon: heart, color: teal] {
+  diet_plan_id UUID PK
+  subscription_id UUID FK
+  trainer_id UUID FK
+  title string
+  calorie_target int
+  protein_grams int
+  carb_grams int
+  fat_grams int
+  notes text
+  assigned_at timestamp
+}
+
+Session [icon: video, color: purple] {
+  session_id UUID PK
+  trainer_id UUID FK
+  client_id UUID FK
+  subscription_id UUID FK
+  session_type enum // 'consultation', 'live_training', 'check_in_call'
+  scheduled_at timestamp
+  duration_minutes int
+  meeting_link string
+  status enum // 'scheduled', 'completed', 'cancelled', 'no_show'
+  trainer_notes text
+}
+
+CheckIn [icon: clipboard, color: green] {
+  checkin_id UUID PK
+  client_id UUID FK
+  subscription_id UUID FK
+  checkin_date date
+  week_number int
+  client_notes text
+  energy_level int // 1-10 self rating
+  sleep_hours decimal
+  adherence_rating int // 1-10 how well they followed plan
+  photo_url string
+}
+
+ProgressLog [icon: trending-up, color: red] {
+  progress_id UUID PK
+  client_id UUID FK
+  checkin_id UUID FK
+  logged_at timestamp
+  weight_kg decimal
+  body_fat_percentage decimal
+  chest_cm decimal
+  waist_cm decimal
+  hips_cm decimal
+  arms_cm decimal
+  thighs_cm decimal
+}
+
+TrainerFeedback [icon: message-square, color: orange] {
+  feedback_id UUID PK
+  checkin_id UUID FK
+  trainer_id UUID FK
+  feedback_text text
+  plan_adjustment_notes text
+  given_at timestamp
+}
+
+Payment [icon: credit-card, color: green] {
+  payment_id UUID PK
+  client_id UUID FK
+  subscription_id UUID FK
+  amount decimal
+  payment_method enum // 'UPI', 'card', 'bank_transfer'
+  payment_status enum // 'pending', 'paid', 'failed', 'refunded'
+  transaction_id string
+  billing_period_start date
+  billing_period_end date
+  paid_at timestamp
+}
+
+// ─── Relationships ───────────────────────────────────────
+
+Trainer.trainer_id < CoachingPlan.trainer_id
+
+Client.client_id < Subscription.client_id
+CoachingPlan.plan_id < Subscription.plan_id
+Trainer.trainer_id < Subscription.trainer_id
+
+Subscription.subscription_id < WorkoutPlan.subscription_id
+Trainer.trainer_id < WorkoutPlan.trainer_id
+
+Subscription.subscription_id < DietPlan.subscription_id
+Trainer.trainer_id < DietPlan.trainer_id
+
+Trainer.trainer_id < Session.trainer_id
+Client.client_id < Session.client_id
+Subscription.subscription_id < Session.subscription_id
+
+Client.client_id < CheckIn.client_id
+Subscription.subscription_id < CheckIn.subscription_id
+
+CheckIn.checkin_id < ProgressLog.checkin_id
+Client.client_id < ProgressLog.client_id
+
+CheckIn.checkin_id < TrainerFeedback.checkin_id
+Trainer.trainer_id < TrainerFeedback.trainer_id
+
+Client.client_id < Payment.client_id
+Subscription.subscription_id < Payment.subscription_id
